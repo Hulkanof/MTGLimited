@@ -1,5 +1,6 @@
 # Local imports
 from cards_handling import refresh
+from gamemodes import limited
 
 # PyPi imports
 import click
@@ -17,7 +18,7 @@ def run():
    """
 
 run.add_command(refresh.refresh)
-
+run.add_command(limited.limited)
 
 if __name__ == '__main__':
    run()

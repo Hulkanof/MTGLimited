@@ -63,7 +63,7 @@ def refresh_sets(non_legal: bool) -> None:
     if not non_legal:
         remove_non_legal_sets()
 
-@click.command()
+@click.command(no_args_is_help=True)
 @click.option('--non-legal', is_flag=True, default=False, help='Will remove all sets without booster packs.')
 def refresh(non_legal: bool) -> None:
     """
