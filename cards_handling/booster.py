@@ -141,7 +141,7 @@ def boosters_balanced_content(boosters_format: list[dict], set_data: dict, cards
         packs.append(pack)
     return packs
 
-def booster(expansion: str, number: int) -> list:
+def booster(expansion: str, number: int, force_unbalanced:bool) -> list:
     """
     Create a booster pack for the given expansion.
     """
@@ -168,10 +168,10 @@ def booster(expansion: str, number: int) -> list:
 
     # Create the booster content
     cards = utils.build_card_dict(data["data"]["cards"])
-    if is_balanced(data):
-        packs = boosters_balanced_content(booster_layouts, set_data, cards)
-    else :
+    if force_unbalanced or not is_balanced(data):
         packs = boosters_content(booster_layouts, set_data, cards)
+    else :
+        packs = boosters_balanced_content(booster_layouts, set_data, cards)
 
     return packs
 
