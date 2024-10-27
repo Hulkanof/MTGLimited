@@ -61,7 +61,8 @@ def generate_card(number: int, sheet: dict) -> list:
     card_list = []
     for card_index in chosen_cards:
         card_id = cards_id[card_index]
-        card = DATABASE['cards'].find_one({'uuid': card_id}, {'_id': 0, 'name': 1})
+        card = DATABASE['cards'].find_one({'uuid': card_id}, {'name': 1})
+        print(card_id, card)
         card_list.append(card['name'])
 
     return card_list
@@ -153,7 +154,7 @@ def booster(expansion: str, number: int, force_unbalanced:bool) -> list:
 
     return packs
 
-def booster_formating(booster: list) -> str:
+def booster_formating(booster: list, online_draft: bool = False) -> str:
     """
     Format the booster pack for display.
     """
@@ -162,4 +163,6 @@ def booster_formating(booster: list) -> str:
     for pack in booster:
         for card in pack:
             booster_str += f'1 {card}\n'
+        if online_draft:
+            booster_str += '\n'
     return booster_str

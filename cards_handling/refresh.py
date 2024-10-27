@@ -100,36 +100,34 @@ def update_data(dir: str) -> None:
     for set_name in sets:
         code = set_name.split('.')[0]
         if not {'code':code} in sets_data:
-            print(f'Adding set {code} to the database')
-            DATABASE['sets'].insert_one({'code': code})  
+            legal = is_legal(set_name, dir)
+            if legal:
+                print(f'Adding set {code} to the database')
+                DATABASE['sets'].insert_one({'code': code})  
             with open(f'{dir}/{set_name}', 'r') as f:
                 data = json.loads(f.read())
 
                 # Update the boosters
-                update_boosters(code, data)
+                if legal:
+                    update_boosters(code, set_name)
 
                 # Update the cards
                 update_cards(data)
 
-def remove_non_legal_sets(temp_dir: str) -> None:
+def is_legal(code: str, temp_dir: str) -> None:
     """
     Remove all sets that do not have booster packs.
     """
-    # Get the list of all sets
-    sets = os.listdir(temp_dir)
-    
+    print(f'Checking if set {code} is legal')
     # Remove all sets that do not have booster packs or have only mtgo or arena booster packs
-    for set_name in sets:
-        with open(f'{temp_dir}/{set_name}', 'r') as f:
-            data = json.loads(f.read())
+    with open(f'{temp_dir}/{code}', 'r') as f:
+        data = json.loads(f.read())
+        if 'booster' not in data.get('data', {}):
+            return False
+        elif 'draft' not in data['data']['booster'] and 'play' not in data['data']['booster'] and 'default' not in data['data']['booster']:
+            return False
+        return True
 
-            if 'booster' not in data.get('data', {}):
-                print(f'Removing set {set_name} as it does not have booster data.')
-                os.remove(f'{temp_dir}/{set_name}')
-            else :
-                if 'draft' not in data['data']['booster'] and 'play' not in data['data']['booster'] and 'default' not in data['data']['booster']:
-                    print(f'Removing set {set_name} as it does not have booster data.')
-                    os.remove(f'{temp_dir}/{set_name}')
 def ensure_database() -> None:
     """
     Ensure the database is created and ready to fill.
@@ -160,10 +158,6 @@ def refresh_sets() -> None:
         print(f'Temporary directory created: {temp_dir}')
         # Download the latest set data
         download_sets(temp_dir)
-
-        # Remove all sets that do not have booster packs
-        remove_non_legal_sets(temp_dir)
-
         # Update the set data in the database with the latest information from MTGJson
         update_data(temp_dir)
 
