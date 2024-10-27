@@ -2,6 +2,10 @@
 import json
 import random
 
+# Local imports
+from cards_handling import sheets
+from cards_handling import utils
+
 # Pypi imports
 import numpy
 
@@ -70,14 +74,67 @@ def select_layout(set_data: dict, number: int ) -> dict:
 
     return boosters_format
 
-def build_card_dict(cards: list) -> dict:
+def is_balanced(data: dict) -> bool:
     """
-    Build a usable dictionary ordered by card uuids.
+    Check if the set is balanced.
     """
-    card_dict = dict()
-    for card in cards:
-        card_dict[card['uuid']] = dict(name=card['name'], colors=card['colors'])
-    return card_dict
+    # Check if the set is balanced
+    if 'play' in data['data']['booster'] : 
+        return True
+    balanced = any('balanceColors' in data['data']['booster']['draft']['sheets'][sheet] for sheet in data['data']['booster']['draft']['sheets'].keys())
+    return balanced
+
+def generate_card_balanced(slot: str, set_data: dict, cards: dict, number: int) -> list:
+    """
+    Generate a card for the given slot in a balanced set.
+    """
+    # Generate sheets to fill this slot
+    balanced_sheets = sheets.generate_sheets(set_data, slot, cards)
+    
+    match random.choice([1,2,3,4,5]):
+        case 1:
+            layout = dict(A=2, B=2, C1=6)
+        case 2:
+            layout = dict(A=3, B=2, C1=5)
+        case 3:
+            layout = dict(A=4, B=2, C2=4)
+        case 4:
+            layout = dict(A=4, B=3, C2=3)
+        case 5:
+            layout = dict(A=4, B=4, C2=2)
+
+    # Select the cards for each sheet
+    card_list = []
+    for sheet, card_quantity in layout.items():
+        starting_index = random.randint(0, len(balanced_sheets[sheet]) - 1)
+        for i in range(card_quantity):
+            card = balanced_sheets[sheet][(starting_index + i) % len(balanced_sheets[sheet])]
+            card_list.append(card)
+
+    # It is possible that the number of cards is higher than the number of cards requested
+    if number < len(card_list):
+        return random.sample(card_list, number)   
+    
+    return card_list
+
+def boosters_balanced_content(boosters_format: list[dict], set_data: dict, cards: dict) -> list:
+    """
+    Create the content of a booster pack based on the given format for a balanced set.
+    """
+
+    # Create the booster content
+    packs = []
+    for booster_format in boosters_format:
+        pack = []
+        for slot, number in booster_format.items():
+            if 'balanceColors' in set_data['sheets'][slot] or "Common" in slot:
+                for i in generate_card_balanced(slot, set_data, cards, number):
+                    pack.append(i)
+            else:
+                for i in generate_card(slot, set_data, cards, number):
+                    pack.append(i)
+        packs.append(pack)
+    return packs
 
 def booster(expansion: str, number: int) -> list:
     """
@@ -102,8 +159,11 @@ def booster(expansion: str, number: int) -> list:
     booster_layouts = select_layout(set_data, number)
 
     # Create the booster content
-    cards = build_card_dict(data["data"]["cards"])
-    packs = boosters_content(booster_layouts, set_data, cards)
+    cards = utils.build_card_dict(data["data"]["cards"])
+    if is_balanced(data):
+        packs = boosters_balanced_content(booster_layouts, set_data, cards)
+    else :
+        packs = boosters_content(booster_layouts, set_data, cards)
 
     return packs
 
