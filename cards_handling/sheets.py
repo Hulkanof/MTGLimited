@@ -1,5 +1,6 @@
 # Local imports
 from cards_handling import utils
+from cards_handling.refresh import DATABASE
 
 # Standard Imports
 import random
@@ -13,13 +14,13 @@ class Color:
         self.cards = cards
 
 
-def generate_sheets(set_data: dict, slot: str, cards: dict) -> dict:
+def generate_sheets(sheet: dict) -> dict:
     """
     Generate A, B, C1 and C2 sheets for the given slot.
     """
     # Get the sheet data
-    sheet_cards = set_data['sheets'][slot]["cards"].keys()
-
+    sheet_cards = [key for key in sheet['cards'].keys()]
+    
     # Generate needed sctructures to generate the sheets
     red = Color('Red', list())
     blue = Color('Blue', list())
@@ -28,7 +29,7 @@ def generate_sheets(set_data: dict, slot: str, cards: dict) -> dict:
     black = Color('Black', list())
     total = list()
     for raw_card in sheet_cards:
-        card = cards[raw_card]
+        card = DATABASE['cards'].find_one({'uuid': raw_card}, {'_id': 0, 'name': 1, 'colors': 1})
         total.append(card['name'])
         match card['colors']:
             case ['R']:
