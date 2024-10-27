@@ -81,7 +81,12 @@ def is_balanced(data: dict) -> bool:
     # Check if the set is balanced
     if 'play' in data['data']['booster'] : 
         return True
-    balanced = any('balanceColors' in data['data']['booster']['draft']['sheets'][sheet] for sheet in data['data']['booster']['draft']['sheets'].keys())
+    elif 'draft' in data['data']['booster']:
+        booster_name = 'draft'
+    else:
+        booster_name = 'default'
+
+    balanced = any('balanceColors' in data['data']['booster'][booster_name]['sheets'][sheet] for sheet in data['data']['booster'][booster_name]['sheets'].keys())
     return balanced
 
 def generate_card_balanced(slot: str, set_data: dict, cards: dict, number: int) -> list:
@@ -149,9 +154,12 @@ def booster(expansion: str, number: int) -> list:
         raise ValueError(f'{expansion} does not have booster data.')
     
     # Retrieve the set data regatding the booster
-    set_data = data['data']['booster'].get('draft', None)
-    if set_data is None:
+    if 'draft' in data['data']['booster']:
+        set_data = data['data']['booster']['draft']
+    elif 'play' in data['data']['booster']:
         set_data = data['data']['booster']['play']
+    else:
+        set_data = data['data']['booster']['default']
 
     # Generate the random seed
     random.seed()
