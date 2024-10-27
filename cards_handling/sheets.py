@@ -158,16 +158,3 @@ def generate_sheets(set_data: dict, slot: str, cards: dict) -> dict:
             c2_cards.pop(card)
 
     return dict(A=A, B=B, C1=C1, C2=C2)
-
-    
-
-    
-    
-
-
-
-
-
-    
-
-
