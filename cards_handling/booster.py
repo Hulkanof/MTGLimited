@@ -5,7 +5,7 @@ import random
 # Local imports
 from cards_handling import sheets
 from cards_handling import utils
-from cards_handling.refresh import DATABASE
+from mtglimited import DATABASE
 
 # Pypi imports
 import numpy

@@ -5,15 +5,10 @@ import subprocess
 import tempfile
 
 # Pypi Imports
-import click
-import dotenv
-import pymongo
 import requests
 
-dotenv.load_dotenv()
-
-MONGO_CLIENT = pymongo.MongoClient(os.getenv('MONGODB_URL'))
-DATABASE = MONGO_CLIENT.mtglimited
+# Local Imports
+from mtglimited import DATABASE
 
 def download_sets(dir: str) -> None:
     """
@@ -183,10 +178,3 @@ def refresh_sets() -> None:
         download_sets(temp_dir)
         # Update the set data in the database with the latest information from MTGJson
         update_data(temp_dir)
-
-@click.command()
-def refresh() -> None:
-    """
-    Refresh the card and set data with the latest information from MTGJson.
-    """
-    refresh_sets()
