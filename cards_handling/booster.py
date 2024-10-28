@@ -62,7 +62,6 @@ def generate_card(number: int, sheet: dict) -> list:
     for card_index in chosen_cards:
         card_id = cards_id[card_index]
         card = DATABASE['cards'].find_one({'uuid': card_id}, {'name': 1})
-        print(card_id, card)
         card_list.append(card['name'])
 
     return card_list
@@ -132,7 +131,7 @@ def boosters_balanced_content(boosters_format: list[dict], sheet: dict) -> list:
         packs.append(pack)
     return packs
 
-def booster(expansion: str, number: int, force_unbalanced:bool) -> list:
+def booster(expansion: str, number: int, force_unbalanced: bool) -> list:
     """
     Create a booster pack for the given expansion.
     """
@@ -154,6 +153,25 @@ def booster(expansion: str, number: int, force_unbalanced:bool) -> list:
 
     return packs
 
+def prerelease(expansion: str, number: int) -> list:
+    """
+    Create a prerelease pack for the given expansion.
+    """
+    # Get the set data from the database
+    prereleases = DATABASE['prerelease'].find_one({'code': expansion}, {'layouts': 1, 'total_weight': 1, 'sheets': 1})
+    if prereleases is None:
+        raise ValueError(f'{expansion} is not in the database. Please update the database.')
+    
+    # Generate the random seed
+    random.seed()
+
+    booster_layouts = select_layout(prereleases['layouts'], prereleases['total_weight'], number)
+
+    # Create the booster content
+    packs = boosters_content(booster_layouts, prereleases['sheets'])
+
+    return packs
+
 def booster_formating(booster: list, online_draft: bool = False) -> str:
     """
     Format the booster pack for display.
@@ -165,4 +183,41 @@ def booster_formating(booster: list, online_draft: bool = False) -> str:
             booster_str += f'1 {card}\n'
         if online_draft:
             booster_str += '\n'
+    return booster_str
+
+def prerelease_formating(booster: list, prerelease: list, online_draft: bool = False) -> str:
+    """
+    Format the prerelease pack for display.
+    """
+    # Format the prerelease pack
+    booster_str = ""
+    if not online_draft:
+        for pack in booster:
+            for card in pack:
+                booster_str += f'1 {card}\n'
+        for pack in prerelease:
+            for card in pack:
+                booster_str += f'1 {card}\n'
+        booster_str += '\n'
+    else:
+        for i in range(len(booster) // 6):
+            for pack in booster[i:i+6]:
+                for card in pack:
+                    booster_str += f'1 {card}\n'
+            for card in prerelease[i]:
+                booster_str += f'1 {card}\n'
+            booster_str += '\n'
+    return booster_str
+
+def chaos_formating(booster: list) -> str:
+    """
+    Format the chaos draft for display.
+    """
+    # Format the chaos draft
+    booster_str = ""
+    for players_pack in booster:
+        for pack in players_pack:
+            for card in pack:
+                booster_str += f'1 {card}\n'
+        booster_str += '\n'
     return booster_str

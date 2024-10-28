@@ -57,7 +57,7 @@ def update_boosters(code: str, data: dict) -> None:
         booster = 'play'
     else:
         booster = 'default'
-    
+    print(f'-   Adding booster data for {code} to the database')
     # Gather all the booster data
     layout = data['data']['booster'][booster]['boosters']
     total_weight = data['data']['booster'][booster]['boostersTotalWeight']
@@ -75,6 +75,7 @@ def update_cards(data: dict) -> None:
     cards = data['data']['cards']
     
     # Retrieve the data from the database
+    print(f'-   Adding card data to the database')
     cards_data = DATABASE['cards'].find({}, {'_id': 0, 'uuid': 1})
     # Add the missing cards to the database
     for card in cards:
@@ -85,6 +86,23 @@ def update_cards(data: dict) -> None:
             set_code = card['setCode']
             card_data = dict(name=name, uuid=uuid, colors=colors, set_code=set_code)
             DATABASE['cards'].insert_one(card_data)
+
+def update_prerelease(code: str, data: dict) -> None:
+    """
+    Update the prerelease in the database with the latest information from MTGJson.
+    """
+    # Get the prerelease data
+    prerelease = data['data'].get('booster',{}).get('prerelease', {})
+    if not prerelease:
+        print(f'-   No prerelease data found for {code}')
+    else :
+        # Add the missing prerelease to the database
+        print(f'-   Adding prerelease data for {code} to the database')
+        layouts = prerelease['boosters']
+        total_weight = prerelease['boostersTotalWeight']
+        sheets = prerelease['sheets']
+        prerelease_data = dict(code=code, layouts=layouts, total_weight=total_weight, sheets=sheets)
+        DATABASE['prerelease'].insert_one(prerelease_data)
         
 def update_data(dir: str) -> None:
     """
@@ -99,17 +117,19 @@ def update_data(dir: str) -> None:
     # Add the missing sets to the database
     for set_name in sets:
         code = set_name.split('.')[0]
+        print("Considering set : ", code)
         if not {'code':code} in sets_data:
             legal = is_legal(set_name, dir)
             if legal:
-                print(f'Adding set {code} to the database')
+                print(f'-   Adding set {code} to the database')
                 DATABASE['sets'].insert_one({'code': code})  
             with open(f'{dir}/{set_name}', 'r') as f:
                 data = json.loads(f.read())
 
                 # Update the boosters
                 if legal:
-                    update_boosters(code, set_name)
+                    update_boosters(code, data)
+                    update_prerelease(code, data)
 
                 # Update the cards
                 update_cards(data)
@@ -145,6 +165,9 @@ def ensure_database() -> None:
     # Create the card collection if it does not exist
     if 'cards' not in collections:
         DATABASE.create_collection('cards')
+
+    if 'prerelease' not in collections:
+        DATABASE.create_collection('prerelease')
 
 def refresh_sets() -> None:
     """
