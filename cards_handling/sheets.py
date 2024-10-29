@@ -1,6 +1,5 @@
 # Local imports
-from cards_handling import utils
-from mtglimited import DATABASE
+from global_configuration import DATABASE
 
 # Standard Imports
 import random

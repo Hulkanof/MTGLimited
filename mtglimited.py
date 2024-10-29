@@ -7,17 +7,6 @@ import limited
 
 # PyPi imports
 import click
-import dotenv
-import pymongo
-
-#------------------------------------------#
-# Global Configuration
-#------------------------------------------#
-
-dotenv.load_dotenv()
-
-MONGO_CLIENT = pymongo.MongoClient(os.getenv('MONGODB_URL'))
-DATABASE = MONGO_CLIENT.mtglimited
 
 #------------------------------------------#
 # Run
@@ -38,6 +27,7 @@ def refresh() -> None:
    """
    refresh_sets()
 
+run.add_command(refresh)
 run.add_command(limited.limited)
 run.add_command(limited.prerelease)
 run.add_command(limited.chaos)

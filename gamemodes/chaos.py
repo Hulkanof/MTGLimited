@@ -3,7 +3,7 @@ import random
 
 # Local Imports
 from cards_handling import booster
-from mtglimited import DATABASE
+from global_configuration import DATABASE
 
 # Pypi imports
 import click

@@ -1,11 +1,9 @@
 # Standard imports
-import json
 import random
 
 # Local imports
 from cards_handling import sheets
-from cards_handling import utils
-from mtglimited import DATABASE
+from global_configuration import DATABASE
 
 # Pypi imports
 import numpy
