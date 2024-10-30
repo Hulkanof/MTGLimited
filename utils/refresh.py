@@ -9,7 +9,10 @@ import requests
 
 # Local Imports
 from global_configuration import DATABASE
-from models.card_models import Set, Card, PreRelease, Booster
+from models.booster import Booster
+from models.set import Set
+from models.prerelease import PreRelease
+from models.card import Card
 
 def download_sets(dir: str) -> None:
     """
@@ -94,24 +97,26 @@ def update_data(dir: str) -> None:
     # Add the missing sets to the database
     for set_name in sets:
         # Load the set data
-        with open(f'{dir}/{set_name}', 'r') as f:
-            data = json.loads(f.read())
-            code = set_name.split('.')[0] 
-            print("Considering set : ", code)
+        code = set_name.split('.')[0] 
+        print("Considering set : ", code)
 
-            # If the set is not in the database, add it
-            if not {'code':code} in sets_data:
-                set = Set(code=code, set_data=data)
+        # If the set is not in the database, add it
+        if not {'code':code} in sets_data:
+            with open(f'{dir}/{set_name}', 'r') as f:
+                data = json.loads(f.read())
+                set = Set(code=code, set_data=data, legal=None)
                 print(f'-   Adding set {code} to the database')
+                # Check if the set is legal
+                set.check_legal()
                 DATABASE['sets'].insert_one(set.export())  
-            
+    
                 # Update the boosters and prerelease data only if the set is legal
-                if set.is_legal(): 
-                    update_boosters(set)
-                    update_prerelease(set)
+                #if set.legal: 
+                    #update_boosters(set)
+                    #update_prerelease(set)
 
                 # Update the cards data
-                update_cards(set)
+                #update_cards(set)
 
 def ensure_database() -> None:
     """

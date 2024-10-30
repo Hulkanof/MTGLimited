@@ -2,7 +2,7 @@
 import random
 
 # Local Imports
-from cards_handling import booster
+import models.booster as booster
 from global_configuration import DATABASE
 
 # Pypi imports
@@ -26,7 +26,7 @@ def choose_set(booster_number: int, specific_set: bool) -> list:
             elif total_boosters < booster_number:
                 print(f"So far, you have generated {total_boosters} boosters. You need to generate {booster_number - total_boosters} more boosters.")
     else:
-        sets = DATABASE['sets'].find({}, {'code': 1}).to_list()
+        sets = DATABASE['sets'].find({'legal':True}, {'code': 1}).to_list()
         random.seed()
         random_sets = random.sample(sets, booster_number)
         for sets in random_sets:
@@ -34,7 +34,20 @@ def choose_set(booster_number: int, specific_set: bool) -> list:
 
     return boosters_to_generate
 
-def new_chaos(booster_number: int, player: int, output: click.Path, force_unbalanced: bool, online_limited: bool, specific_set: bool) -> None:
+def chaos_formating(booster: list) -> str:
+    """
+    Format the chaos draft for display.
+    """
+    # Format the chaos draft
+    booster_str = ""
+    for players_pack in booster:
+        for pack in players_pack:
+            for card in pack:
+                booster_str += f'1 {card}\n'
+        booster_str += '\n'
+    return booster_str
+
+def new_chaos(booster_number: int, player: int, output: click.Path, online_limited: bool, specific_set: bool) -> None:
     """
     Generate booster packs for a chaos draft of Magic: The Gathering.
     """
@@ -47,16 +60,16 @@ def new_chaos(booster_number: int, player: int, output: click.Path, force_unbala
         for i in range(player):
             player_boosters = []
             for set_name, number in mapping:
-                player_boosters.extend(booster.booster(set_name, number, force_unbalanced))
+                player_boosters.extend(booster.create_booster(set_name, number))
             boosters.append(player_boosters)
         with open(f'{output}/online_limited.txt', 'w') as f:
-            booster_content = booster.chaos_formating(boosters)
+            booster_content = chaos_formating(boosters)
             f.write(booster_content)
     else:
         for i in range(player):
             boosters = []
             for set_name, number in mapping:
-                boosters.extend(booster.booster(set_name, number, force_unbalanced))
+                boosters.extend(booster.create_booster(set_name, number))
             with open(f'{output}/player_{i+1}.txt', 'w') as f:
                 booster_content = booster.booster_formating(boosters)
                 f.write(booster_content)
