@@ -38,6 +38,10 @@ class Sheet(pydantic.BaseModel):
                 self.cards[card] -= 1
                 if self.cards[card] == 0:
                     self.cards.pop(card)
+            if '' in cards:
+                null_index = cards.index('')
+                card = random.sample([i for i in self.cards.keys()], 1)[0]
+                cards[null_index] = card
         return cards
 
 def fill_cards_list(sheet: dict) -> tuple[Color, Color, Color, Color, Color, list]:

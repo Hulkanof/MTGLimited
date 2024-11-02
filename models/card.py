@@ -45,8 +45,6 @@ def generate_card(number: int, sheet: dict) -> list:
         card = Card.model_validate(DATABASE['cards'].find_one({'uuid': card_id}, {'_id': 0}))
         card_list.append(card.name)
 
-    print(card_list)
-
     return card_list
 
 def generate_card_balanced(balanced_sheets: dict, number: int) -> list:
@@ -74,7 +72,6 @@ def generate_card_balanced(balanced_sheets: dict, number: int) -> list:
             card = balanced_sheets[sheet][(starting_index + i) % len(balanced_sheets[sheet])]
             card_list.append(card)
 
-    print(layout, card_list)
     # It is possible that the number of cards is higher than the number of cards requested
     if number < len(card_list):
         return random.sample(card_list, number)   

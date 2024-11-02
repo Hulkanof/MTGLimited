@@ -66,14 +66,13 @@ def boosters_balanced_content(boosters_format: list[dict], sheet: dict) -> list:
     for booster_format in boosters_format:
         pack = []
         for slot, number in booster_format.items():
-            if 'balanceColors' in sheet[slot] or ("common" in slot and "uncommon" not in slot):
+            if 'balanceColors' in sheet[slot] or ("common" in slot.lower() and "uncommon" not in slot.lower()):
                 balanced_sheets = sheets.generate_sheets(sheet[slot])
                 for i in generate_card_balanced(balanced_sheets, number):
                     pack.append(i)
             else:
                 for i in generate_card(number, sheet[slot]):
                     pack.append(i)
-        
         packs.append(pack)
     return packs
 
